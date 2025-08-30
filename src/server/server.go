@@ -41,13 +41,7 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 
 	key := data["k"].(string)
 	val := data["v"].(string)
-
-	exp := int64(-1)
-
-	if expMsIface, exists := data["expMs"]; exists {
-		expMs, _ := expMsIface.(int64)
-		exp = expMs
-	}
+	exp := data["expMs"].(int64)
 
 	s.aol.Append(command.Command{
 		Name:      command.CommandNameSet,
