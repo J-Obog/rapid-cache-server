@@ -1,5 +1,7 @@
 package command
 
+import "time"
+
 type CommandName int
 
 const (
@@ -10,6 +12,6 @@ const (
 type Command struct {
 	Name      CommandName
 	Key       string
-	Timestamp int64
+	Timestamp time.Time
 	Params    map[string]string
 }
