@@ -85,5 +85,20 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDiff(w http.ResponseWriter, r *http.Request) {
+	data := make(map[string]interface{})
 
+	bodyDecoder := json.NewDecoder(r.Body)
+	bodyDecoder.Decode(data) //TODO: Handle error
+
+	var l []command.Command
+
+	if afterMsIface, exists := data["afterMs"]; exists {
+		afterMs, _ := afterMsIface.(int64)
+		l = s.aol.GetAllAfterTimestamp(time.UnixMilli(afterMs))
+	} else {
+		l = s.aol.GetAll()
+	}
+
+	bodyEncoder := json.NewEncoder(w)
+	bodyEncoder.Encode(l)
 }
