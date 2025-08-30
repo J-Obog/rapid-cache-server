@@ -53,7 +53,7 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 		Name:      command.CommandNameSet,
 		Key:       key,
 		Timestamp: timeNow,
-		Seed:      "",
+		Seed:      "", //TODO: Generate seed
 		Params: map[string]string{
 			"value":     val,
 			"expiresAt": strconv.FormatInt(exp, 10),
@@ -64,7 +64,24 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
+	timeNow := time.Now()
 
+	data := make(map[string]interface{})
+
+	bodyDecoder := json.NewDecoder(r.Body)
+	bodyDecoder.Decode(data) //TODO: Handle error
+
+	key := data["k"].(string)
+
+	s.aol.Append(command.Command{
+		Name:      command.CommandNameDelete,
+		Key:       key,
+		Timestamp: timeNow,
+		Seed:      "", //TODO: Generate seed
+		Params:    map[string]string{},
+	})
+
+	w.WriteHeader(http.StatusAccepted)
 }
 
 func (s *Server) handleDiff(w http.ResponseWriter, r *http.Request) {
