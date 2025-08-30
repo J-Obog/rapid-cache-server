@@ -18,3 +18,7 @@ func (aol *AppendOnlyCommandList) GetAll() []Command {
 func (aol *AppendOnlyCommandList) GetAllAfterTimestamp(timestamp time.Time) []Command {
 	return nil
 }
+
+func (aol *AppendOnlyCommandList) Reindex() {
+
+}
