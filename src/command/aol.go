@@ -64,7 +64,11 @@ func (aol *AppendOnlyCommandList) Reindex() {
 		} else if c1.Timestamp.Before(c2.Timestamp) {
 			return -1
 		} else {
-			return 0
+			if c1.Seed > c1.Seed {
+				return 1
+			} else {
+				return -1
+			}
 		}
 	})
 

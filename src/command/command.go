@@ -13,5 +13,6 @@ type Command struct {
 	Name      CommandName
 	Key       string
 	Timestamp time.Time
+	Seed      string
 	Params    map[string]string
 }
