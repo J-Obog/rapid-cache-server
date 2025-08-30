@@ -24,7 +24,12 @@ func (aol *AppendOnlyCommandList) Append(newCommand Command) {
 }
 
 func (aol *AppendOnlyCommandList) GetAll() []Command {
-	return nil
+	aol.lock.Lock()
+	defer aol.lock.Unlock()
+
+	l := make([]Command, len(aol.c_list))
+	copy(l, aol.c_list)
+	return l
 }
 
 func (aol *AppendOnlyCommandList) GetAllAfterTimestamp(timestamp time.Time) []Command {
