@@ -5,8 +5,8 @@ import "time"
 type CommandName int
 
 const (
-	Set CommandName = iota
-	Delete
+	CommandNameSet CommandName = iota
+	CommandNameDelete
 )
 
 type Command struct {

@@ -1,6 +1,8 @@
 package command
 
 import (
+	"slices"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -50,5 +52,40 @@ func (aol *AppendOnlyCommandList) GetAllAfterTimestamp(timestamp time.Time) []Co
 }
 
 func (aol *AppendOnlyCommandList) Reindex() {
+	aol.lock.Lock()
+	defer aol.lock.Unlock()
 
+	nl := make([]Command, 0) //TODO: Pick better capacity size
+	keyToLatestCommandMap := make(map[string]Command)
+
+	slices.SortFunc[[]Command](aol.c_list, func(c1, c2 Command) int {
+		if c1.Timestamp.After(c2.Timestamp) {
+			return 1
+		} else if c1.Timestamp.Before(c2.Timestamp) {
+			return -1
+		} else {
+			return 0
+		}
+	})
+
+	currentTimestamp := time.Now()
+
+	for _, command := range aol.c_list {
+		if command.Name == CommandNameDelete {
+			delete(keyToLatestCommandMap, command.Key)
+		} else if command.Name == CommandNameSet {
+			epochTimestampMillis, _ := strconv.ParseInt(command.Params["expiresAt"], 10, 64) //TODO: Handle error
+			expirationTimestamp := time.UnixMilli(epochTimestampMillis)
+
+			if currentTimestamp.Before(expirationTimestamp) {
+				keyToLatestCommandMap[command.Key] = command
+			}
+		}
+	}
+
+	for _, command := range keyToLatestCommandMap {
+		nl = append(nl, command)
+	}
+
+	aol.c_list = nl
 }
