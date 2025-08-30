@@ -6,23 +6,21 @@ import (
 )
 
 type AppendOnlyCommandList struct {
-	c_list  []Command
-	top_ptr int
-	lock    sync.RWMutex
+	c_list []Command
+	lock   sync.RWMutex
 }
 
 func NewAppendOnlyCommandList() *AppendOnlyCommandList {
 	return &AppendOnlyCommandList{
-		c_list:  make([]Command, 0),
-		top_ptr: -1,
-		lock:    sync.RWMutex{},
+		c_list: make([]Command, 0),
+		lock:   sync.RWMutex{},
 	}
 }
 
-func (aol *AppendOnlyCommandList) Append(command Command) {
+func (aol *AppendOnlyCommandList) Append(newCommand Command) {
 	aol.lock.Lock()
 	defer aol.lock.Unlock()
-
+	aol.c_list = append(aol.c_list, newCommand)
 }
 
 func (aol *AppendOnlyCommandList) GetAll() []Command {
