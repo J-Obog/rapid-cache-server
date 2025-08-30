@@ -8,7 +8,7 @@ import (
 
 func main() {
 	cfg := &server.ServerConfig{
-		Address:      "localhost:8076",
+		Address:      "127.0.0.1:8076",
 		ReindexAfter: 5 * time.Minute,
 	}
 

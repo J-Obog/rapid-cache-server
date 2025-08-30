@@ -50,10 +50,10 @@ func (s *Server) Start() {
 func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 	timeNow := time.Now()
 
-	var setRequest *SetKeyRequest
+	var setRequest SetKeyRequest
 
 	bodyDecoder := json.NewDecoder(r.Body)
-	bodyDecoder.Decode(setRequest) //TODO: Handle error
+	bodyDecoder.Decode(&setRequest) //TODO: Handle error
 
 	s.aol.Append(command.Command{
 		Name:      command.CommandNameSet,
@@ -72,10 +72,10 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 	timeNow := time.Now()
 
-	var deleteRequest *DeleteKeyRequest
+	var deleteRequest DeleteKeyRequest
 
 	bodyDecoder := json.NewDecoder(r.Body)
-	bodyDecoder.Decode(deleteRequest) //TODO: Handle error
+	bodyDecoder.Decode(&deleteRequest) //TODO: Handle error
 
 	s.aol.Append(command.Command{
 		Name:      command.CommandNameDelete,
@@ -88,10 +88,10 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDiff(w http.ResponseWriter, r *http.Request) {
-	var diffRequest *DiffRequest
+	var diffRequest DiffRequest
 
 	bodyDecoder := json.NewDecoder(r.Body)
-	bodyDecoder.Decode(diffRequest) //TODO: Handle error
+	bodyDecoder.Decode(&diffRequest) //TODO: Handle error
 
 	var l []command.Command
 
