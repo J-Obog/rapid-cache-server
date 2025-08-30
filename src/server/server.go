@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -29,7 +30,8 @@ func NewServer(cfg *ServerConfig) *Server {
 
 func (s *Server) Start() {
 	http.Handle("/", s.r)
-	http.ListenAndServe(s.cfg.Address, nil)
+	log.Println("Starting up server")
+	log.Fatal(http.ListenAndServe(s.cfg.Address, nil))
 }
 
 func (s *Server) initializeRouter() {
