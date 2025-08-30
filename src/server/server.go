@@ -13,16 +13,23 @@ import (
 type Server struct {
 	r   *mux.Router
 	aol command.AppendOnlyCommandList
+	cfg ServerConfig
 }
 
-func NewServer() *Server {
+func NewServer(cfg *ServerConfig) *Server {
 	server := &Server{
 		r:   mux.NewRouter(),
 		aol: *command.NewAppendOnlyCommandList(),
+		cfg: *cfg,
 	}
 
 	server.initializeRouter()
 	return server
+}
+
+func (s *Server) Start() {
+	http.Handle("/", s.r)
+	http.ListenAndServe(s.cfg.Address, nil)
 }
 
 func (s *Server) initializeRouter() {
