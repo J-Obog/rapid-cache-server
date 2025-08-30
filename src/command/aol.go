@@ -33,7 +33,20 @@ func (aol *AppendOnlyCommandList) GetAll() []Command {
 }
 
 func (aol *AppendOnlyCommandList) GetAllAfterTimestamp(timestamp time.Time) []Command {
-	return nil
+	aol.lock.Lock()
+	defer aol.lock.Unlock()
+
+	l := make([]Command, 0)
+
+	for _, command := range aol.c_list {
+		commandTimestamp := command.Timestamp
+
+		if commandTimestamp.After(timestamp) {
+			l = append(l, command)
+		}
+	}
+
+	return l
 }
 
 func (aol *AppendOnlyCommandList) Reindex() {
