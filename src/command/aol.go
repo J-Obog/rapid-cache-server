@@ -1,13 +1,27 @@
 package command
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type AppendOnlyCommandList struct {
 	c_list  []Command
-	top_ptr int64
+	top_ptr int
+	lock    sync.RWMutex
+}
+
+func NewAppendOnlyCommandList() *AppendOnlyCommandList {
+	return &AppendOnlyCommandList{
+		c_list:  make([]Command, 0),
+		top_ptr: -1,
+		lock:    sync.RWMutex{},
+	}
 }
 
 func (aol *AppendOnlyCommandList) Append(command Command) {
+	aol.lock.Lock()
+	defer aol.lock.Unlock()
 
 }
 
