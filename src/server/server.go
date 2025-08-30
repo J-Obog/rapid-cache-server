@@ -12,32 +12,28 @@ import (
 )
 
 type Server struct {
-	r   *mux.Router
 	aol command.AppendOnlyCommandList
 	cfg ServerConfig
 }
 
 func NewServer(cfg *ServerConfig) *Server {
 	server := &Server{
-		r:   mux.NewRouter(),
 		aol: *command.NewAppendOnlyCommandList(),
 		cfg: *cfg,
 	}
 
-	server.initializeRouter()
 	return server
 }
 
 func (s *Server) Start() {
-	http.Handle("/", s.r)
+	r := mux.NewRouter()
+	r.HandleFunc("/set", s.handleKeySet).Methods(http.MethodPost)
+	r.HandleFunc("/del", s.handleKeyDelete).Methods(http.MethodPost)
+	r.HandleFunc("/diff", s.handleDiff).Methods(http.MethodPost)
+
+	http.Handle("/", r)
 	log.Println("Starting up server")
 	log.Fatal(http.ListenAndServe(s.cfg.Address, nil))
-}
-
-func (s *Server) initializeRouter() {
-	s.r.HandleFunc("/set", s.handleKeySet).Methods("POST")
-	s.r.HandleFunc("/del", s.handleKeyDelete).Methods("POST")
-	s.r.HandleFunc("/diff", s.handleDiff).Methods("POST")
 }
 
 func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
