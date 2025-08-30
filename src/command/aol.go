@@ -78,7 +78,7 @@ func (aol *AppendOnlyCommandList) Reindex() {
 		if command.Name == CommandNameDelete {
 			delete(keyToLatestCommandMap, command.Key)
 		} else if command.Name == CommandNameSet {
-			epochTimestampMillis, _ := strconv.ParseInt(command.Params["expiresAt"], 10, 64) //TODO: Handle error
+			epochTimestampMillis, _ := strconv.ParseInt(command.Params[CommandParamKeyExpiresAt], 10, 64) //TODO: Handle error
 			expirationTimestamp := time.UnixMilli(epochTimestampMillis)
 
 			if currentTimestamp.Before(expirationTimestamp) {

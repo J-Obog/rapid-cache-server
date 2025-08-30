@@ -48,9 +48,9 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 		Key:       key,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
-		Params: map[string]string{
-			"value":     val,
-			"expiresAt": strconv.FormatInt(exp, 10),
+		Params: map[command.CommandParamKey]string{
+			command.CommandParamKeyValue:     val,
+			command.CommandParamKeyExpiresAt: strconv.FormatInt(exp, 10),
 		},
 	})
 
@@ -72,7 +72,7 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 		Key:       key,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
-		Params:    map[string]string{},
+		Params:    map[command.CommandParamKey]string{},
 	})
 
 	w.WriteHeader(http.StatusAccepted)
