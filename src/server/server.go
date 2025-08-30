@@ -43,23 +43,19 @@ func (s *Server) initializeRouter() {
 func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 	timeNow := time.Now()
 
-	data := make(map[string]interface{})
+	var setRequest *SetKeyRequest
 
 	bodyDecoder := json.NewDecoder(r.Body)
-	bodyDecoder.Decode(data) //TODO: Handle error
-
-	key := data["k"].(string)
-	val := data["v"].(string)
-	exp := data["expMs"].(int64)
+	bodyDecoder.Decode(setRequest) //TODO: Handle error
 
 	s.aol.Append(command.Command{
 		Name:      command.CommandNameSet,
-		Key:       key,
+		Key:       setRequest.Key,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
 		Params: map[command.CommandParamKey]string{
-			command.CommandParamKeyValue:     val,
-			command.CommandParamKeyExpiresAt: strconv.FormatInt(exp, 10),
+			command.CommandParamKeyValue:     setRequest.Value,
+			command.CommandParamKeyExpiresAt: strconv.FormatUint(setRequest.ExpiresAtMillis, 10),
 		},
 	})
 
@@ -69,35 +65,31 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 	timeNow := time.Now()
 
-	data := make(map[string]interface{})
+	var deleteRequest *DeleteKeyRequest
 
 	bodyDecoder := json.NewDecoder(r.Body)
-	bodyDecoder.Decode(data) //TODO: Handle error
-
-	key := data["k"].(string)
+	bodyDecoder.Decode(deleteRequest) //TODO: Handle error
 
 	s.aol.Append(command.Command{
 		Name:      command.CommandNameDelete,
-		Key:       key,
+		Key:       deleteRequest.Key,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
-		Params:    map[command.CommandParamKey]string{},
 	})
 
 	w.WriteHeader(http.StatusAccepted)
 }
 
 func (s *Server) handleDiff(w http.ResponseWriter, r *http.Request) {
-	data := make(map[string]interface{})
+	var diffRequest *DiffRequest
 
 	bodyDecoder := json.NewDecoder(r.Body)
-	bodyDecoder.Decode(data) //TODO: Handle error
+	bodyDecoder.Decode(diffRequest) //TODO: Handle error
 
 	var l []command.Command
 
-	if afterMsIface, exists := data["afterMs"]; exists {
-		afterMs, _ := afterMsIface.(int64)
-		l = s.aol.GetAllAfterTimestamp(time.UnixMilli(afterMs))
+	if diffRequest.AfterTimestampMillis != nil {
+		l = s.aol.GetAllAfterTimestamp(time.UnixMilli(int64(*diffRequest.AfterTimestampMillis)))
 	} else {
 		l = s.aol.GetAll()
 	}
