@@ -30,8 +30,19 @@ func (s *Server) Start() {
 	r.HandleFunc("/set", s.handleKeySet).Methods(http.MethodPost)
 	r.HandleFunc("/del", s.handleKeyDelete).Methods(http.MethodPost)
 	r.HandleFunc("/diff", s.handleDiff).Methods(http.MethodPost)
-
 	http.Handle("/", r)
+
+	go func() {
+		ticker := time.NewTicker(s.cfg.ReindexAfter)
+		for {
+			select {
+			case <-ticker.C:
+				log.Println("Reindexing list")
+				s.aol.Reindex()
+			}
+		}
+	}()
+
 	log.Println("Starting up server")
 	log.Fatal(http.ListenAndServe(s.cfg.Address, nil))
 }
