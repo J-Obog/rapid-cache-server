@@ -70,7 +70,7 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.aol.Append(commandToAppend)
-	s.aof.Append(&commandToAppend)
+	s.doFileWrite(&commandToAppend)
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -91,7 +91,7 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.aol.Append(commandToAppend)
-	s.aof.Append(&commandToAppend)
+	s.doFileWrite(&commandToAppend)
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -112,4 +112,13 @@ func (s *Server) handleDiff(w http.ResponseWriter, r *http.Request) {
 
 	bodyEncoder := json.NewEncoder(w)
 	bodyEncoder.Encode(l)
+}
+
+func (s *Server) doFileWrite(newCommand *command.Command) {
+	if s.cfg.SaveToFileSynchronously {
+		s.aof.Append(newCommand)
+		return
+	}
+
+	go s.aof.Append(newCommand)
 }
