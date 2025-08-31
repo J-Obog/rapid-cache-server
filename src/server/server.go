@@ -8,17 +8,20 @@ import (
 	"time"
 
 	"github.com/J-Obog/rapid-cache-server/src/command"
+	"github.com/J-Obog/rapid-cache-server/src/filesystem"
 	"github.com/gorilla/mux"
 )
 
 type Server struct {
-	aol command.AppendOnlyCommandList
+	aol *command.AppendOnlyCommandList
+	aof *filesystem.AppendOnlyCommandFile
 	cfg ServerConfig
 }
 
 func NewServer(cfg *ServerConfig) *Server {
 	server := &Server{
-		aol: *command.NewAppendOnlyCommandList(),
+		aol: command.NewAppendOnlyCommandList(),
+		aof: &filesystem.AppendOnlyCommandFile{},
 		cfg: *cfg,
 	}
 
@@ -55,7 +58,7 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 	bodyDecoder := json.NewDecoder(r.Body)
 	bodyDecoder.Decode(&setRequest) //TODO: Handle error
 
-	s.aol.Append(command.Command{
+	commandToAppend := command.Command{
 		Name:      command.CommandNameSet,
 		Key:       setRequest.Key,
 		Timestamp: timeNow,
@@ -64,7 +67,10 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 			command.CommandParamKeyValue:     setRequest.Value,
 			command.CommandParamKeyExpiresAt: strconv.FormatUint(setRequest.ExpiresAtMillis, 10),
 		},
-	})
+	}
+
+	s.aol.Append(commandToAppend)
+	s.aof.Append(&commandToAppend)
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -77,12 +83,15 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 	bodyDecoder := json.NewDecoder(r.Body)
 	bodyDecoder.Decode(&deleteRequest) //TODO: Handle error
 
-	s.aol.Append(command.Command{
+	commandToAppend := command.Command{
 		Name:      command.CommandNameDelete,
 		Key:       deleteRequest.Key,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
-	})
+	}
+
+	s.aol.Append(commandToAppend)
+	s.aof.Append(&commandToAppend)
 
 	w.WriteHeader(http.StatusAccepted)
 }
