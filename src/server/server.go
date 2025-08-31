@@ -36,7 +36,7 @@ func (s *Server) Start() {
 	http.Handle("/", r)
 
 	go func() {
-		ticker := time.NewTicker(s.cfg.ReindexAfter)
+		ticker := time.NewTicker(s.cfg.ReindexInterval)
 		for {
 			select {
 			case <-ticker.C:
