@@ -36,3 +36,22 @@ func (c *CacheMap) Delete(key string, timestamp time.Time) {
 		delete(c.cmap, key)
 	}
 }
+
+func (c *CacheMap) Get(key string, timestamp time.Time) *Value {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	val, exists := c.cmap[key]
+
+	if !exists {
+		return nil
+	}
+
+	if val.ExpiresAt.After(timestamp) {
+		return &val
+	} else {
+		delete(c.cmap, key)
+	}
+
+	return nil
+}

@@ -10,6 +10,6 @@ type DeleteKeyRequest struct {
 	Key string `json:"key"`
 }
 
-type DiffRequest struct {
-	AfterTimestampMillis *uint64 `json:"after"`
+type GetKeyRequest struct {
+	Key string `json:"key"`
 }
