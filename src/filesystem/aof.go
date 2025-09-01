@@ -11,8 +11,14 @@ type WriteOperationAOF struct {
 	file *os.File
 }
 
-func NewAppendOnlyStateChangeFile() *WriteOperationAOF {
-	//os.Open
+func (aof *WriteOperationAOF) Open(filePath string) error {
+	filePtr, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0600) //TODO: set with correct permission
+
+	if err != nil {
+		return err
+	}
+
+	aof.file = filePtr
 	return nil
 }
 
