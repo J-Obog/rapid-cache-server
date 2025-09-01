@@ -11,6 +11,11 @@ type AppendOnlyStateChangeFile struct {
 	file *os.File
 }
 
+func NewAppendOnlyStateChangeFile() *AppendOnlyStateChangeFile {
+	//os.Open
+	return nil
+}
+
 func (aof *AppendOnlyStateChangeFile) Read() ([]StateChange, error) {
 	changes := make([]StateChange, 0)
 

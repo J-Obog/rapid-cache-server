@@ -1,9 +1,14 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/J-Obog/rapid-cache-server/src/cachemap"
@@ -48,8 +53,30 @@ func (s *Server) Start() {
 	r.HandleFunc("/del", s.handleKeyDelete).Methods(http.MethodPost)
 	http.Handle("/", r)
 
+	server := &http.Server{
+		Addr: s.cfg.Address,
+	}
+
 	log.Println("Starting up server")
-	log.Fatal(http.ListenAndServe(s.cfg.Address, nil))
+
+	go func() {
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("Error while running server: %v", err)
+		}
+		log.Println("Server finished serving requests")
+	}()
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
+
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer shutdownRelease()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("Error while shutting down server: %v", err)
+	}
+
+	log.Println("Server shutdown")
 }
 
 func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
