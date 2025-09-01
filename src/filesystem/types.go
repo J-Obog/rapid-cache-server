@@ -23,7 +23,7 @@ type KeyUpdate struct {
 	ExpiresAt time.Time
 }
 
-func (*KeyUpdate) ChangeType() StateChangeType {
+func (KeyUpdate) ChangeType() StateChangeType {
 	return StateChangeKeyUpdate
 }
 

@@ -1,12 +1,12 @@
 package filesystem
 
-type AppendOnlyCommandFile struct {
+type AppendOnlyStateChangeFile struct {
 }
 
-func (aof *AppendOnlyCommandFile) Read() error {
+func (aof *AppendOnlyStateChangeFile) Read() error {
 	return nil
 }
 
-func (aof *AppendOnlyCommandFile) Append(newCommand *StateChange) error {
+func (aof *AppendOnlyStateChangeFile) Append(newCommand StateChange) error {
 	return nil
 }

@@ -13,14 +13,14 @@ import (
 
 type Server struct {
 	cacheMap *cachemap.CacheMap
-	aof      *filesystem.AppendOnlyCommandFile
+	aof      *filesystem.AppendOnlyStateChangeFile
 	cfg      ServerConfig
 }
 
 func NewServer(cfg *ServerConfig) *Server {
 	server := &Server{
 		cacheMap: &cachemap.CacheMap{},
-		aof:      &filesystem.AppendOnlyCommandFile{},
+		aof:      &filesystem.AppendOnlyStateChangeFile{},
 		cfg:      *cfg,
 	}
 
@@ -95,7 +95,7 @@ func (s *Server) handleKeyGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted) //TODO: return actual data
 }
 
-func (s *Server) doFileWrite(StateChange *filesystem.StateChange) {
+func (s *Server) doFileWrite(StateChange filesystem.StateChange) {
 	if s.cfg.SaveToFileSynchronously {
 		s.aof.Append(StateChange)
 		return
