@@ -10,6 +10,13 @@ type CacheMap struct {
 	lock sync.RWMutex
 }
 
+func NewCacheMap() *CacheMap {
+	return &CacheMap{
+		cmap: make(map[string]Value),
+		lock: sync.RWMutex{},
+	}
+}
+
 // TODO: Handle tombstoning in a better way
 func (c *CacheMap) Set(key string, value string, exp time.Time, timestamp time.Time) {
 	c.lock.Lock()

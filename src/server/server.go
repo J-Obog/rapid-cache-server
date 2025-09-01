@@ -24,7 +24,7 @@ type Server struct {
 
 func NewServer(cfg *ServerConfig) *Server {
 	aof := &filesystem.WriteOperationAOF{}
-	cache := &cachemap.CacheMap{}
+	cache := cachemap.NewCacheMap()
 
 	server := &Server{
 		cacheMap: cache,

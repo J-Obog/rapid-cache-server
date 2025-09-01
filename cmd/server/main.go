@@ -8,9 +8,10 @@ import (
 
 func main() {
 	cfg := &server.ServerConfig{
-		Address:         "127.0.0.1:8076",
-		ReindexInterval: 5 * time.Minute,
-		OutputFilePath:  "./data/0",
+		Address:                 "127.0.0.1:8076",
+		ReindexInterval:         5 * time.Minute,
+		OutputFilePath:          "./data/0",
+		SaveToFileSynchronously: true,
 	}
 
 	s := server.NewServer(cfg)
