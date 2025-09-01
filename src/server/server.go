@@ -26,17 +26,6 @@ func NewServer(cfg *ServerConfig) *Server {
 	aof := &filesystem.WriteOperationAOF{}
 	cache := &cachemap.CacheMap{}
 
-	stateChanges, _ := aof.Read()
-
-	for _, change := range stateChanges {
-		switch v := change.(type) {
-		case filesystem.SetKeyOperation:
-			cache.SetWithoutLock(v.Key, v.Val, v.ExpiresAt, v.Timestamp)
-		case filesystem.DeleteKeyOperation:
-			cache.DeleteWithoutLock(v.Key, v.Timestamp)
-		}
-	}
-
 	server := &Server{
 		cacheMap: cache,
 		aof:      aof,
@@ -47,6 +36,17 @@ func NewServer(cfg *ServerConfig) *Server {
 }
 
 func (s *Server) Start() {
+	stateChanges, _ := s.aof.Read()
+
+	for _, change := range stateChanges {
+		switch v := change.(type) {
+		case filesystem.SetKeyOperation:
+			s.cacheMap.SetWithoutLock(v.Key, v.Val, v.ExpiresAt, v.Timestamp)
+		case filesystem.DeleteKeyOperation:
+			s.cacheMap.DeleteWithoutLock(v.Key, v.Timestamp)
+		}
+	}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/get", s.handleKeySet).Methods(http.MethodPost)
 	r.HandleFunc("/set", s.handleKeySet).Methods(http.MethodPost)
