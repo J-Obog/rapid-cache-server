@@ -36,6 +36,10 @@ func NewServer(cfg *ServerConfig) *Server {
 }
 
 func (s *Server) Start() {
+	if err := s.aof.Open(s.cfg.OutputFilePath); err != nil {
+		log.Fatalf("Error while opening data file: %v", err)
+	}
+
 	stateChanges, _ := s.aof.Read()
 
 	for _, change := range stateChanges {

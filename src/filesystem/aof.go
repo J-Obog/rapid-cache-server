@@ -12,7 +12,7 @@ type WriteOperationAOF struct {
 }
 
 func (aof *WriteOperationAOF) Open(filePath string) error {
-	filePtr, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY, 0600) //TODO: set with correct permission
+	filePtr, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600) //TODO: set with correct permission
 
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func (aof *WriteOperationAOF) Open(filePath string) error {
 }
 
 func (aof *WriteOperationAOF) Close() error {
-	return aof.Close()
+	return aof.file.Close()
 }
 
 func (aof *WriteOperationAOF) Read() ([]WriteOperation, error) {
