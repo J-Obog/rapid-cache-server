@@ -18,9 +18,23 @@ type Server struct {
 }
 
 func NewServer(cfg *ServerConfig) *Server {
+	aof := &filesystem.AppendOnlyStateChangeFile{}
+	cache := &cachemap.CacheMap{}
+
+	stateChanges, _ := aof.Read()
+
+	for _, change := range stateChanges {
+		switch v := change.(type) {
+		case filesystem.KeyUpdate:
+			cache.SetWithoutLock(v.Key, v.Val, v.ExpiresAt, v.Timestamp)
+		case filesystem.KeyDelete:
+			cache.DeleteWithoutLock(v.Key, v.Timestamp)
+		}
+	}
+
 	server := &Server{
-		cacheMap: &cachemap.CacheMap{},
-		aof:      &filesystem.AppendOnlyStateChangeFile{},
+		cacheMap: cache,
+		aof:      aof,
 		cfg:      *cfg,
 	}
 

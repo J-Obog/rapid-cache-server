@@ -33,6 +33,6 @@ type KeyDelete struct {
 	Key       string
 }
 
-func (*KeyDelete) ChangeType() StateChangeType {
+func (KeyDelete) ChangeType() StateChangeType {
 	return StateChangeKeyUpdate
 }

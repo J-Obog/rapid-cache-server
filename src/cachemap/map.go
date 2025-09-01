@@ -14,7 +14,14 @@ type CacheMap struct {
 func (c *CacheMap) Set(key string, value string, exp time.Time, timestamp time.Time) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	c.setKey(key, value, exp, timestamp)
+}
 
+func (c *CacheMap) SetWithoutLock(key string, value string, exp time.Time, timestamp time.Time) {
+	c.setKey(key, value, exp, timestamp)
+}
+
+func (c *CacheMap) setKey(key string, value string, exp time.Time, timestamp time.Time) {
 	val, exists := c.cmap[key]
 
 	if !exists || val.LastUpdated.Before(timestamp) {
@@ -29,7 +36,14 @@ func (c *CacheMap) Set(key string, value string, exp time.Time, timestamp time.T
 func (c *CacheMap) Delete(key string, timestamp time.Time) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	c.deleteKey(key, timestamp)
+}
 
+func (c *CacheMap) DeleteWithoutLock(key string, timestamp time.Time) {
+	c.deleteKey(key, timestamp)
+}
+
+func (c *CacheMap) deleteKey(key string, timestamp time.Time) {
 	val, exists := c.cmap[key]
 
 	if exists && val.LastUpdated.Before(timestamp) {
