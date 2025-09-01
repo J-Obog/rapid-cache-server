@@ -4,12 +4,16 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
-	"fmt"
 	"os"
 )
 
 type WriteOperationAOF struct {
 	file *os.File
+}
+
+func init() {
+	gob.Register(&DeleteKeyOperation{})
+	gob.Register(&SetKeyOperation{})
 }
 
 func (aof *WriteOperationAOF) Open(filePath string) error {
@@ -43,8 +47,6 @@ func (aof *WriteOperationAOF) Read() ([]WriteOperation, error) {
 
 		sz := binary.BigEndian.Uint32(buf1) //TODO: Handle errors
 
-		fmt.Println(sz)
-
 		buf2 := make([]byte, sz)
 
 		if numRead, _ := aof.file.Read(buf2); numRead == 0 {
@@ -55,11 +57,8 @@ func (aof *WriteOperationAOF) Read() ([]WriteOperation, error) {
 
 		dec := gob.NewDecoder(bytes.NewBuffer(buf2))
 		if err := dec.Decode(&change); err != nil {
-			fmt.Println(err)
 			return nil, err
 		}
-
-		fmt.Println(change)
 
 		changes = append(changes, change)
 	}
@@ -77,10 +76,6 @@ func (aof *WriteOperationAOF) Append(newStateChange WriteOperation) error {
 
 	buf2 := make([]byte, binary.MaxVarintLen32)
 	binary.BigEndian.PutUint32(buf2, uint32(len(buf.Bytes())))
-
-	fmt.Println(buf2)
-
-	fmt.Println(append(buf2, buf.Bytes()...))
 
 	_, err := aof.file.Write(append(buf2, buf.Bytes()...))
 	return err
