@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/J-Obog/rapid-cache-server/src/cachemap"
@@ -47,20 +46,19 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 	bodyDecoder := json.NewDecoder(r.Body)
 	bodyDecoder.Decode(&request) //TODO: Handle error
 
-	s.cacheMap.Set(request.Key, request.Value, time.UnixMilli(int64(request.ExpiresAtMillis)), timeNow)
+	expiresAtAsTimeObj := time.UnixMilli(int64(request.ExpiresAtMillis))
 
-	commandToAppend := filesystem.Command{
-		Name:      filesystem.CommandNameSet,
+	s.cacheMap.Set(request.Key, request.Value, expiresAtAsTimeObj, timeNow)
+
+	change := filesystem.KeyUpdate{
 		Key:       request.Key,
+		Val:       request.Value,
+		ExpiresAt: expiresAtAsTimeObj,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
-		Params: map[filesystem.CommandParamKey]string{
-			filesystem.CommandParamKeyValue:     request.Value,
-			filesystem.CommandParamKeyExpiresAt: strconv.FormatUint(request.ExpiresAtMillis, 10),
-		},
 	}
 
-	s.doFileWrite(&commandToAppend)
+	s.doFileWrite(&change)
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -72,8 +70,7 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 	bodyDecoder := json.NewDecoder(r.Body)
 	bodyDecoder.Decode(&request) //TODO: Handle error
 
-	commandToAppend := filesystem.Command{
-		Name:      filesystem.CommandNameDelete,
+	change := filesystem.KeyDelete{
 		Key:       request.Key,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
@@ -81,7 +78,7 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 
 	s.cacheMap.Delete(request.Key, timeNow)
 
-	s.doFileWrite(&commandToAppend)
+	s.doFileWrite(&change)
 	w.WriteHeader(http.StatusAccepted)
 }
 
@@ -98,11 +95,11 @@ func (s *Server) handleKeyGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted) //TODO: return actual data
 }
 
-func (s *Server) doFileWrite(newCommand *filesystem.Command) {
+func (s *Server) doFileWrite(StateChange *filesystem.StateChange) {
 	if s.cfg.SaveToFileSynchronously {
-		s.aof.Append(newCommand)
+		s.aof.Append(StateChange)
 		return
 	}
 
-	go s.aof.Append(newCommand)
+	go s.aof.Append(StateChange)
 }

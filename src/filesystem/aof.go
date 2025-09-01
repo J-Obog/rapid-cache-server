@@ -7,6 +7,6 @@ func (aof *AppendOnlyCommandFile) Read() error {
 	return nil
 }
 
-func (aof *AppendOnlyCommandFile) Append(newCommand *Command) error {
+func (aof *AppendOnlyCommandFile) Append(newCommand *StateChange) error {
 	return nil
 }

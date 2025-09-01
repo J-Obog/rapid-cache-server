@@ -1,24 +1,38 @@
 package filesystem
 
-import "time"
-
-type CommandName int
-type CommandParamKey int
-
-const (
-	CommandNameSet CommandName = iota
-	CommandNameDelete
+import (
+	"time"
 )
 
+type StateChangeType string
+
 const (
-	CommandParamKeyValue CommandParamKey = iota
-	CommandParamKeyExpiresAt
+	StateChangeKeyUpdate StateChangeType = "KEY_UPDATE"
+	StateChangeKeyDelete StateChangeType = "KEY_DELETE"
 )
 
-type Command struct {
-	Name      CommandName
-	Key       string
+type StateChange interface {
+	ChangeType() StateChangeType
+}
+
+type KeyUpdate struct {
 	Timestamp time.Time
 	Seed      string
-	Params    map[CommandParamKey]string
+	Key       string
+	Val       string
+	ExpiresAt time.Time
+}
+
+func (*KeyUpdate) ChangeType() StateChangeType {
+	return StateChangeKeyUpdate
+}
+
+type KeyDelete struct {
+	Timestamp time.Time
+	Seed      string
+	Key       string
+}
+
+func (*KeyDelete) ChangeType() StateChangeType {
+	return StateChangeKeyUpdate
 }
