@@ -16,6 +16,10 @@ func NewAppendOnlyStateChangeFile() *AppendOnlyStateChangeFile {
 	return nil
 }
 
+func (aof *AppendOnlyStateChangeFile) Close() error {
+	return aof.Close()
+}
+
 func (aof *AppendOnlyStateChangeFile) Read() ([]StateChange, error) {
 	changes := make([]StateChange, 0)
 

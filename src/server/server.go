@@ -77,6 +77,12 @@ func (s *Server) Start() {
 	}
 
 	log.Println("Server shutdown")
+
+	if err := s.aof.Close(); err != nil {
+		log.Fatalf("Error while closing aof: %v", err) //TODO: Maybe dont do fatal log
+	}
+
+	log.Println("Aof has been closed")
 }
 
 func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
