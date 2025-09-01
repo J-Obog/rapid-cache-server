@@ -7,21 +7,21 @@ import (
 	"os"
 )
 
-type AppendOnlyStateChangeFile struct {
+type WriteOperationAOF struct {
 	file *os.File
 }
 
-func NewAppendOnlyStateChangeFile() *AppendOnlyStateChangeFile {
+func NewAppendOnlyStateChangeFile() *WriteOperationAOF {
 	//os.Open
 	return nil
 }
 
-func (aof *AppendOnlyStateChangeFile) Close() error {
+func (aof *WriteOperationAOF) Close() error {
 	return aof.Close()
 }
 
-func (aof *AppendOnlyStateChangeFile) Read() ([]StateChange, error) {
-	changes := make([]StateChange, 0)
+func (aof *WriteOperationAOF) Read() ([]WriteOperation, error) {
+	changes := make([]WriteOperation, 0)
 
 	for {
 		buf1 := make([]byte, binary.MaxVarintLen32)
@@ -37,7 +37,7 @@ func (aof *AppendOnlyStateChangeFile) Read() ([]StateChange, error) {
 			break
 		}
 
-		var change StateChange
+		var change WriteOperation
 
 		dec := gob.NewDecoder(bytes.NewBuffer(buf2))
 		if err := dec.Decode(change); err != nil {
@@ -50,7 +50,7 @@ func (aof *AppendOnlyStateChangeFile) Read() ([]StateChange, error) {
 	return changes, nil
 }
 
-func (aof *AppendOnlyStateChangeFile) Append(newStateChange StateChange) error {
+func (aof *WriteOperationAOF) Append(newStateChange WriteOperation) error {
 	var buf bytes.Buffer
 
 	enc := gob.NewEncoder(&buf)

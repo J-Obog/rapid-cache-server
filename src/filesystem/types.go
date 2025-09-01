@@ -4,18 +4,11 @@ import (
 	"time"
 )
 
-type StateChangeType string
-
-const (
-	StateChangeKeyUpdate StateChangeType = "KEY_UPDATE"
-	StateChangeKeyDelete StateChangeType = "KEY_DELETE"
-)
-
-type StateChange interface {
-	ChangeType() StateChangeType
+type WriteOperation interface {
+	OperationType() string
 }
 
-type KeyUpdate struct {
+type SetKeyOperation struct {
 	Timestamp time.Time
 	Seed      string
 	Key       string
@@ -23,16 +16,16 @@ type KeyUpdate struct {
 	ExpiresAt time.Time
 }
 
-func (KeyUpdate) ChangeType() StateChangeType {
-	return StateChangeKeyUpdate
+func (SetKeyOperation) OperationType() string {
+	return "KEY_SET"
 }
 
-type KeyDelete struct {
+type DeleteKeyOperation struct {
 	Timestamp time.Time
 	Seed      string
 	Key       string
 }
 
-func (KeyDelete) ChangeType() StateChangeType {
-	return StateChangeKeyUpdate
+func (DeleteKeyOperation) OperationType() string {
+	return "KEY_DELETE"
 }

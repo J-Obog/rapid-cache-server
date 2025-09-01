@@ -18,21 +18,21 @@ import (
 
 type Server struct {
 	cacheMap *cachemap.CacheMap
-	aof      *filesystem.AppendOnlyStateChangeFile
+	aof      *filesystem.WriteOperationAOF
 	cfg      ServerConfig
 }
 
 func NewServer(cfg *ServerConfig) *Server {
-	aof := &filesystem.AppendOnlyStateChangeFile{}
+	aof := &filesystem.WriteOperationAOF{}
 	cache := &cachemap.CacheMap{}
 
 	stateChanges, _ := aof.Read()
 
 	for _, change := range stateChanges {
 		switch v := change.(type) {
-		case filesystem.KeyUpdate:
+		case filesystem.SetKeyOperation:
 			cache.SetWithoutLock(v.Key, v.Val, v.ExpiresAt, v.Timestamp)
-		case filesystem.KeyDelete:
+		case filesystem.DeleteKeyOperation:
 			cache.DeleteWithoutLock(v.Key, v.Timestamp)
 		}
 	}
@@ -97,7 +97,7 @@ func (s *Server) handleKeySet(w http.ResponseWriter, r *http.Request) {
 
 	s.cacheMap.Set(request.Key, request.Value, expiresAtAsTimeObj, timeNow)
 
-	change := filesystem.KeyUpdate{
+	change := filesystem.SetKeyOperation{
 		Key:       request.Key,
 		Val:       request.Value,
 		ExpiresAt: expiresAtAsTimeObj,
@@ -117,7 +117,7 @@ func (s *Server) handleKeyDelete(w http.ResponseWriter, r *http.Request) {
 	bodyDecoder := json.NewDecoder(r.Body)
 	bodyDecoder.Decode(&request) //TODO: Handle error
 
-	change := filesystem.KeyDelete{
+	change := filesystem.DeleteKeyOperation{
 		Key:       request.Key,
 		Timestamp: timeNow,
 		Seed:      "", //TODO: Generate seed
@@ -142,7 +142,7 @@ func (s *Server) handleKeyGet(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted) //TODO: return actual data
 }
 
-func (s *Server) doFileWrite(StateChange filesystem.StateChange) {
+func (s *Server) doFileWrite(StateChange filesystem.WriteOperation) {
 	if s.cfg.SaveToFileSynchronously {
 		s.aof.Append(StateChange)
 		return
