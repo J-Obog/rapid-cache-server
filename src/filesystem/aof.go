@@ -12,7 +12,33 @@ type AppendOnlyStateChangeFile struct {
 }
 
 func (aof *AppendOnlyStateChangeFile) Read() ([]StateChange, error) {
-	return nil, nil
+	changes := make([]StateChange, 0)
+
+	for {
+		buf1 := make([]byte, binary.MaxVarintLen32)
+		if numRead, _ := aof.file.Read(buf1); numRead == 0 {
+			break
+		}
+
+		sz, _ := binary.Uvarint(buf1) //TODO: Handle errors
+
+		buf2 := make([]byte, sz)
+
+		if numRead, _ := aof.file.Read(buf2); numRead == 0 {
+			break
+		}
+
+		var change StateChange
+
+		dec := gob.NewDecoder(bytes.NewBuffer(buf2))
+		if err := dec.Decode(change); err != nil {
+			return nil, err
+		}
+
+		changes = append(changes, change)
+	}
+
+	return changes, nil
 }
 
 func (aof *AppendOnlyStateChangeFile) Append(newStateChange StateChange) error {
