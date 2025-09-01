@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/gob"
+	"fmt"
 	"os"
 )
 
@@ -12,7 +13,7 @@ type WriteOperationAOF struct {
 }
 
 func (aof *WriteOperationAOF) Open(filePath string) error {
-	filePtr, err := os.OpenFile(filePath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600) //TODO: set with correct permission
+	filePtr, err := os.OpenFile(filePath, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0600) //TODO: set with correct permission
 
 	if err != nil {
 		return err
@@ -31,11 +32,18 @@ func (aof *WriteOperationAOF) Read() ([]WriteOperation, error) {
 
 	for {
 		buf1 := make([]byte, binary.MaxVarintLen32)
-		if numRead, _ := aof.file.Read(buf1); numRead == 0 {
+		numRead, _ := aof.file.Read(buf1)
+
+		if numRead == 0 {
 			break
 		}
+		/*if numRead, _ := aof.file.Read(buf1); numRead == 0 {
+			break
+		}*/
 
-		sz, _ := binary.Uvarint(buf1) //TODO: Handle errors
+		sz := binary.BigEndian.Uint32(buf1) //TODO: Handle errors
+
+		fmt.Println(sz)
 
 		buf2 := make([]byte, sz)
 
@@ -46,9 +54,12 @@ func (aof *WriteOperationAOF) Read() ([]WriteOperation, error) {
 		var change WriteOperation
 
 		dec := gob.NewDecoder(bytes.NewBuffer(buf2))
-		if err := dec.Decode(change); err != nil {
+		if err := dec.Decode(&change); err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
+
+		fmt.Println(change)
 
 		changes = append(changes, change)
 	}
@@ -60,12 +71,16 @@ func (aof *WriteOperationAOF) Append(newStateChange WriteOperation) error {
 	var buf bytes.Buffer
 
 	enc := gob.NewEncoder(&buf)
-	if err := enc.Encode(newStateChange); err != nil {
+	if err := enc.Encode(&newStateChange); err != nil {
 		return err
 	}
 
 	buf2 := make([]byte, binary.MaxVarintLen32)
-	binary.BigEndian.PutUint32(buf2, uint32(buf.Len()))
+	binary.BigEndian.PutUint32(buf2, uint32(len(buf.Bytes())))
+
+	fmt.Println(buf2)
+
+	fmt.Println(append(buf2, buf.Bytes()...))
 
 	_, err := aof.file.Write(append(buf2, buf.Bytes()...))
 	return err

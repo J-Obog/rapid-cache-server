@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -41,6 +42,8 @@ func (s *Server) Start() {
 	}
 
 	stateChanges, _ := s.aof.Read()
+
+	fmt.Println(stateChanges)
 
 	for _, change := range stateChanges {
 		switch v := change.(type) {
