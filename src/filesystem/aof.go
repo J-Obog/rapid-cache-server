@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/gob"
 	"os"
 )
@@ -22,6 +23,9 @@ func (aof *AppendOnlyStateChangeFile) Append(newStateChange StateChange) error {
 		return err
 	}
 
-	_, err := aof.file.Write(buf.Bytes())
+	buf2 := make([]byte, binary.MaxVarintLen32)
+	binary.BigEndian.PutUint32(buf2, uint32(buf.Len()))
+
+	_, err := aof.file.Write(append(buf2, buf.Bytes()...))
 	return err
 }
