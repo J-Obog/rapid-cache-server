@@ -36,14 +36,10 @@ func (aof *WriteOperationAOF) Read() ([]WriteOperation, error) {
 
 	for {
 		buf1 := make([]byte, binary.MaxVarintLen32)
-		numRead, _ := aof.file.Read(buf1)
 
-		if numRead == 0 {
+		if numRead, _ := aof.file.Read(buf1); numRead == 0 {
 			break
 		}
-		/*if numRead, _ := aof.file.Read(buf1); numRead == 0 {
-			break
-		}*/
 
 		sz := binary.BigEndian.Uint32(buf1) //TODO: Handle errors
 

@@ -6,14 +6,16 @@ import (
 )
 
 type CacheMap struct {
-	cmap map[string]Value
-	lock sync.RWMutex
+	cmap              map[string]Value
+	lastTombstonedMap map[string]time.Time
+	lock              sync.RWMutex
 }
 
 func NewCacheMap() *CacheMap {
 	return &CacheMap{
-		cmap: make(map[string]Value),
-		lock: sync.RWMutex{},
+		cmap:              make(map[string]Value),
+		lastTombstonedMap: make(map[string]time.Time),
+		lock:              sync.RWMutex{},
 	}
 }
 
@@ -29,6 +31,12 @@ func (c *CacheMap) SetWithoutLock(key string, value string, exp time.Time, times
 }
 
 func (c *CacheMap) setKey(key string, value string, exp time.Time, timestamp time.Time) {
+	if lastTombestonedAt, ok := c.lastTombstonedMap[key]; ok {
+		if timestamp.Before(lastTombestonedAt) {
+			return
+		}
+	}
+
 	val, exists := c.cmap[key]
 
 	if !exists || val.LastUpdated.Before(timestamp) {
@@ -51,9 +59,16 @@ func (c *CacheMap) DeleteWithoutLock(key string, timestamp time.Time) {
 }
 
 func (c *CacheMap) deleteKey(key string, timestamp time.Time) {
+	if lastTombestonedAt, ok := c.lastTombstonedMap[key]; ok {
+		if timestamp.Before(lastTombestonedAt) {
+			return
+		}
+	}
+
 	val, exists := c.cmap[key]
 
 	if exists && val.LastUpdated.Before(timestamp) {
+		c.lastTombstonedMap[key] = timestamp
 		delete(c.cmap, key)
 	}
 }
@@ -61,6 +76,12 @@ func (c *CacheMap) deleteKey(key string, timestamp time.Time) {
 func (c *CacheMap) Get(key string, timestamp time.Time) *Value {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+
+	if lastTombestonedAt, ok := c.lastTombstonedMap[key]; ok {
+		if timestamp.Before(lastTombestonedAt) {
+			return nil
+		}
+	}
 
 	val, exists := c.cmap[key]
 
